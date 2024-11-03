@@ -210,6 +210,65 @@ def test_product_navigation(driver):
             (lp.HEADER_IPHON6_32g, 'https://www.demoblaze.com/prod.html?idp_=5'),
             (lp.HEADER_SONY_XPERIA_Z5, 'https://www.demoblaze.com/prod.html?idp_=6'),
             (lp.HEADER_HTC_ONE_M9, 'https://www.demoblaze.com/prod.html?idp_=7'),
+            (lp.HEADER_SONY_VAIO_I5,'https://www.demoblaze.com/prod.html?idp_=8'),
+            (lp.HEADER_SONY_VAIO_I7,'https://www.demoblaze.com/prod.html?idp_=9')
+        ],
+        'second_page': [
+            (lp.HEADER_APPLE_MONITOR_24,'https://www.demoblaze.com/prod.html?idp_=10'),
+            (lp.HEADER_MACBOOK_AIR, 'https://www.demoblaze.com/prod.html?idp_=11'),
+            (lp.HEADER_DELL_I7_8GB, 'https://www.demoblaze.com/prod.html?idp_=12'),
+            (lp.HEADER_2017_DELL_156_INCH, 'https://www.demoblaze.com/prod.html?idp_=13'),
+            (lp.HEADER_ASUS_FULL_HD, 'https://www.demoblaze.com/prod.html?idp_=14'),
+            (lp.HEADER_MACBOOK_PRO, 'https://www.demoblaze.com/prod.html?idp_=15'),
+        ]
+    }
+
+    for header, url in products['first_page']:
+        lp.click_element(header)  # לחץ על הכותרת
+        time.sleep(2)  # המתן לטעינת העמוד
+
+        # בדוק שהכתובת השתנתה לכתובת הרצויה
+        current_url = driver.current_url
+        assert current_url == url
+
+        # לחיצה על כפתור HOME שוב
+        # driver.back()  # חזור לעמוד הקודם
+        # time.sleep(2)  # המתן לטעינת העמוד
+        lp.click_home()  # לחיצה על כפתור הבית
+        time.sleep(2)  # המתן לטעינת העמוד
+    for header, url in products['second_page']:
+        lp.click_next_button()
+        time.sleep(2)
+        lp.click_element(header)  # לחץ על הכותרת
+        time.sleep(2)  # המתן לטעינת העמוד
+
+        # בדוק שהכתובת השתנתה לכתובת הרצויה
+        current_url = driver.current_url
+        assert current_url == url
+
+        # לחיצה על כפתור HOME שוב
+
+        lp.click_home()  # לחיצה על כפתור הבית
+        time.sleep(2)  # המתן לטעינת העמוד
+
+
+def test_header_in_description(driver):
+    """אליק זאת הבדיקה שבקשת להוסיף היא לא עובדת לי לא הצלחתי לסדר את זה """
+    base_url = 'https://www.demoblaze.com/index.html'
+    driver.get(base_url)
+    lp = Lp(driver)
+    time.sleep(2)
+    products = {
+        'first_page': [
+            (lp.HEADER_SAMSUNG_GALACSY_S6,lp.DESCRIPTION_SAMSUNG_GALACSY_S6),
+            (lp.HEADER_NOKIA_LUMIA_1520,lp.DESCRIPTION_NOKIA_LUMIA_1520),
+            (lp.HEADER_NEXUS_6, lp.DESCRIPTION_NEXUS_6),
+            (lp.HEADER_SAMSUNGGALUCSY_S7, lp.DESCRIPTION_SAMSUNGGALUCSY_S7),
+            (lp.HEADER_IPHON6_32g, lp.DESCRIPTION_IPHON6_32g),
+            (lp.HEADER_SONY_XPERIA_Z5, lp.DESCRIPTION_SONY_XPERIA_Z5),
+            (lp.HEADER_HTC_ONE_M9, lp.DESCRIPTION_HTC_ONE_M9),
+            (lp.HEADER_SONY_VAIO_I5, lp.DESCRIPTION_SONY_VAIO_I5),
+            (lp.HEADER_SONY_VAIO_I7, lp.DESCRIPTION_SONY_VAIO_I7)
         ],
         'second_page': [
             (lp.HEADER_APPLE_MONITOR_24, 'https://www.demoblaze.com/prod.html?idp_=10'),
@@ -218,33 +277,18 @@ def test_product_navigation(driver):
             (lp.HEADER_2017_DELL_156_INCH, 'https://www.demoblaze.com/prod.html?idp_=13'),
             (lp.HEADER_ASUS_FULL_HD, 'https://www.demoblaze.com/prod.html?idp_=14'),
             (lp.HEADER_MACBOOK_PRO, 'https://www.demoblaze.com/prod.html?idp_=15'),
-        ],
+        ]
     }
+    description_element = driver.find_element(By.CLASS_NAME, 'card-text')  # שנה את ה-Class Name לפי הצורך
+    description_text = description_element.get_attribute('innerText')
 
-    for header, url in products['first_page']:
-        lp.click_(header)()  # לחץ על הכותרת
-        time.sleep(2)  # המתן לטעינת העמוד
+    for header, expected_description in products['first_page']:
+        assert header in description_text
+        assert expected_description in description_text
 
-        # בדוק שהכתובת השתנתה לכתובת הרצויה
-        current_url = driver.current_url
-        assert current_url == url, f"Expected URL: {url}, but got: {current_url}"
 
-        # לחיצה על כפתור HOME שוב
-        driver.back()  # חזור לעמוד הקודם
-        time.sleep(2)  # המתן לטעינת העמוד
-        lp.click_home()  # לחיצה על כפתור הבית
-        time.sleep(2)  # המתן לטעינת העמוד
     for header, url in products['second_page']:
         lp.click_next_button()
-        header.click()  # לחץ על הכותרת
-        time.sleep(2)  # המתן לטעינת העמוד
-
-        # בדוק שהכתובת השתנתה לכתובת הרצויה
-        current_url = driver.current_url
-        assert current_url == url, f"Expected URL: {url}, but got: {current_url}"
-
-        # לחיצה על כפתור HOME שוב
-        driver.back()  # חזור לעמוד הקודם
-        time.sleep(2)  # המתן לטעינת העמוד
-        lp.click_home()  # לחיצה על כפתור הבית
-        time.sleep(2)  # המתן לטעינת העמוד
+        time.sleep(2)
+        assert header in description_text
+        assert expected_description in description_text
