@@ -3,28 +3,8 @@ from .base_page import BasePage
 
 
 class LoginPage(BasePage):
-    LOGIN_BUTTON_HOME = (By.XPATH, '//*[@id="login2"]')
-    USERNAME_FIELD=(By.ID,'loginusername')
-    PASSWORD_FIELD=(By.ID,'loginpassword')
-    LOGIN_BUTTON=(By.CSS_SELECTOR,'#logInModal > div > div > div.modal-footer > button.btn.btn-primary')
-    CLOSE_BUTTON=(By.CSS_SELECTOR,'#logInModal > div > div > div.modal-footer > button.btn.btn-secondary')
-    WELCOME_USERNAME=(By.ID,'nameofuser')
-    LOGOUT_BUTTON=(By.ID,'logout2')
+    LOGIN_BUTTON_HOME = (By.CSS_SELECTOR, '#root > div.w-full.navbar.bg-primaryDark.bg-primaryDark.sm\:px-16.px-6.flex.justify-center.items-center.z-30 > div > nav > div:nth-child(1) > ul > a')
 
     def click_login_home(self):
         self.click_element(self.LOGIN_BUTTON_HOME)
 
-    def enter_username(self,username):
-        self.enter_text(self.USERNAME_FIELD,username)
-
-    def enter_password(self,password):
-        self.enter_text(self.PASSWORD_FIELD,password)
-
-    def click_login(self):
-        self.click_element(self.LOGIN_BUTTON)
-
-    def click_close(self):
-        self.click_element(self.CLOSE_BUTTON)
-
-    def click_logout(self):
-        self.click_element(self.LOGOUT_BUTTON)
