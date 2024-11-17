@@ -6,12 +6,66 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.alert import Alert
 
+
 def test_search_field(driver):
     base_url = 'https://portal-dev.safsarglobal.link/'
     lp = Lp(driver)
     driver.get(base_url)
-    lp.click_search_field()
-    time.sleep(10)
+    categories_elements = {
+        'TEATRON': [
+            (lp.CAT_TEATRON_BUTTON, [lp.TEATRON_HEADER]), ],
+        'MUSIC': [
+            (lp.CAT_MUSIC_BUTTON, [lp.MUSIC_HEADER]), ],
+        'SPORT': [
+            (lp.CAT_SPORT_BUTTON, [lp.SPORT_HEADER]), ],
+        'STENDUP': [
+            (lp.CAT_STENDUP_BUTTON, [lp.STENDUP_HEADER]), ],
+        'KIDS': [
+            (lp.CAT_KIDS_BUTTON, [lp.KIDS_HEADER]), ],
+    }
+
+    for category, elements in categories_elements.items():
+        button_locator, items = elements[0]
+
+        # בדוק שהכפתור לחיץ ומוצג
+        element = WebDriverWait(driver, 15).until(EC.element_to_be_clickable(button_locator))
+        assert element.is_displayed(), f"{category} button is not displayed."
+        print(f"{category} button is clickable and displayed.")
+
+        # לחץ על הקטגוריה
+        lp.click_element(button_locator)
+
+        # בדוק אם הכותרת מופיעה בעמוד של הקטגוריה
+        for header_locator in items:
+            header_element = WebDriverWait(driver, 10).until(EC.presence_of_element_located(header_locator))
+            assert header_element.is_displayed(), f"{category} header is not displayed."
+            print(f"{category} header is displayed.")
+
+        WebDriverWait(driver, 15).until(EC.visibility_of_element_located(lp.SAFSAR_LOGO_BUTTON))
+
+
+        # חזור לעמוד הבית
+        lp.click_safsar_logo()
+
+        # הוסף שהייה קטנה כדי להבטיח טעינת העמוד
+        time.sleep(2)
+
+
+    print("All categories and their items are displayed correctly!")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 # def test_header_elements(driver):

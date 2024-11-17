@@ -5,7 +5,7 @@ from webdriver_manager.chrome import  ChromeDriverManager
 from selenium.webdriver.chrome.service import Service
 
 
-os.environ['WDM_LOCAL']='1'
+# os.environ['WDM_LOCAL']='1'
 
 @pytest.fixture(scope="function")
 def driver():
