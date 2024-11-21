@@ -9,27 +9,213 @@ from selenium.webdriver.common.keys import Keys
 from utils.phone_conection import get_latest_sms_code
 
 def test_sanity_login(driver):
+    """
+    Perform the sanity login test: enter phone number, fetch OTP, and verify login.
+    """
+    # from lp_module import Lp  # Replace with the actual import for your page object class
+
     base_url = 'https://portal-dev.safsarglobal.link/'
     driver.get(base_url)
+
     lp = Lp(driver)
-    driver.get(base_url)
     lp.click_login_home()
+
+    # Enter phone number
     phone_input = WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located(lp.INPUT_PHONE_NUMBER))
-    phone_input.send_keys("0523961700")
+        EC.presence_of_element_located(lp.INPUT_PHONE_NUMBER)
+    )
+    phone_input.send_keys("0542400813")
     time.sleep(5)
     lp.click_enter_button()
-    time.sleep(30)
-    # שליפת קוד האימות מתוך ההודעה האחרונה
-    otp_code = get_latest_sms_code()
+    time.sleep(20)
+
+    # Fetch OTP from the latest SMS
+    otp_code = None
+    try:
+        result = subprocess.run(
+            ["adb", "shell", "content", "query", "--uri", "content://sms/inbox", "--projection", "body,date"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            encoding='utf-8'
+        )
+
+        if result.returncode != 0:
+            print(f"Error fetching SMS: {result.stderr}")
+        elif result.stdout:
+            messages = result.stdout.splitlines()
+            parsed_messages = []
+
+            for message in messages:
+                parts = message.split(", ")
+                if len(parts) >= 2:
+                    try:
+                        body_part = parts[0].split("=", 1)[1].strip()
+                        date_part = parts[1].split("=", 1)[1].strip()
+
+                        if date_part.isdigit():
+                            timestamp = int(date_part)
+                            if 0 <= timestamp <= 2000000000000:
+                                parsed_messages.append((body_part, timestamp))
+                    except IndexError:
+                        continue
+
+            if parsed_messages:
+                parsed_messages.sort(key=lambda x: x[1], reverse=True)
+                latest_sms = parsed_messages[0]
+                print(f"Latest SMS: {latest_sms[0]}")
+
+                import re
+                match = re.search(r'\b\d{4,6}\b', latest_sms[0])  # Adjust regex if needed
+                if match:
+                    otp_code = match.group(0)
+    except subprocess.SubprocessError as e:
+        print(f"An error occurred while running ADB command: {e}")
+
+    # Verify OTP code retrieval
     if otp_code:
+        print(f"Retrieved OTP Code: {otp_code}")
         lp.enter_otp_code(otp_code)
     else:
         print("Failed to retrieve OTP code.")
+        assert False, "OTP code retrieval failed"
+
     time.sleep(5)
     lp.click_submit_button()
-    assert driver.current_url == "https://portal-dev.safsarglobal.link/"
-    assert driver.find_element(*lp.MY_ACAUNT_HOME_BUTTON).is_displayed()
+    time.sleep(10)
+    # Assertions to verify successful login
+    assert driver.current_url == base_url, "Login failed; URL mismatch."
+    assert driver.find_element(*lp.MY_ACCOUNT_HOME_BUTTON).is_displayed(), "My Account button is not visible."
+
+#1.21.3-1.21.6
+def test_sanity_login_2(driver):
+    """
+    Perform the sanity login test: enter phone number, fetch OTP, and verify login.
+    """
+    # from lp_module import Lp  # Replace with the actual import for your page object class
+
+    base_url = 'https://portal-dev.safsarglobal.link/'
+    driver.get(base_url)
+
+    lp = Lp(driver)
+    lp.click_login_home()
+
+    # Enter phone number
+    phone_input = WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located(lp.INPUT_PHONE_NUMBER)
+    )
+    phone_input.send_keys("0542400813")
+    time.sleep(5)
+    lp.click_enter_button()
+    time.sleep(20)
+
+    # Fetch OTP from the latest SMS
+    otp_code = None
+    try:
+        result = subprocess.run(
+            ["adb", "shell", "content", "query", "--uri", "content://sms/inbox", "--projection", "body,date"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            encoding='utf-8'
+        )
+
+        if result.returncode != 0:
+            print(f"Error fetching SMS: {result.stderr}")
+        elif result.stdout:
+            messages = result.stdout.splitlines()
+            parsed_messages = []
+
+            for message in messages:
+                parts = message.split(", ")
+                if len(parts) >= 2:
+                    try:
+                        body_part = parts[0].split("=", 1)[1].strip()
+                        date_part = parts[1].split("=", 1)[1].strip()
+
+                        if date_part.isdigit():
+                            timestamp = int(date_part)
+                            if 0 <= timestamp <= 2000000000000:
+                                parsed_messages.append((body_part, timestamp))
+                    except IndexError:
+                        continue
+
+            if parsed_messages:
+                parsed_messages.sort(key=lambda x: x[1], reverse=True)
+                latest_sms = parsed_messages[0]
+                print(f"Latest SMS: {latest_sms[0]}")
+
+                import re
+                match = re.search(r'\b\d{4,6}\b', latest_sms[0])  # Adjust regex if needed
+                if match:
+                    otp_code = match.group(0)
+    except subprocess.SubprocessError as e:
+        print(f"An error occurred while running ADB command: {e}")
+
+    # Verify OTP code retrieval
+    if otp_code:
+        print(f"Retrieved OTP Code: {otp_code}")
+        lp.enter_otp_code(otp_code)
+    else:
+        print("Failed to retrieve OTP code.")
+        assert False, "OTP code retrieval failed"
+
+    time.sleep(5)
+    lp.click_submit_button()
+    time.sleep(10)
+    # Assertions to verify successful login
+    assert driver.current_url == base_url, "Login failed; URL mismatch."
+    assert driver.find_element(*lp.MY_ACCOUNT_HOME_BUTTON).is_displayed(), "My Account button is not visible."
+
+
+def test_sanity_login_3(driver):
+    """
+    Perform the sanity login test: enter phone number, fetch OTP, and verify login.
+    """
+    # from lp_module import Lp  # Replace with the actual import for your page object class
+
+    base_url = 'https://portal-dev.safsarglobal.link/'
+    driver.get(base_url)
+
+    lp = Lp(driver)
+    lp.click_login_home()
+
+    # Enter phone number
+    phone_input = WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located(lp.INPUT_PHONE_NUMBER)
+    )
+    phone_input.send_keys("0542400813")
+    time.sleep(5)
+    lp.click_enter_button()
+    time.sleep(20)
+    lp.enter_otp_code("762351")
+    time.sleep(5)
+    lp.click_submit_button()
+    time.sleep(10)
+
+
+def test_sanity_login_4(driver):
+    """
+    Perform the sanity login test: enter phone number, fetch OTP, and verify login.
+    """
+    # from lp_module import Lp  # Replace with the actual import for your page object class
+
+    base_url = 'https://portal-dev.safsarglobal.link/'
+    driver.get(base_url)
+
+    lp = Lp(driver)
+    lp.click_login_home()
+
+    # Enter phone number
+    phone_input = WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located(lp.INPUT_PHONE_NUMBER)
+    )
+    phone_input.send_keys("0542400813")
+    time.sleep(5)
+    lp.click_enter_button()
+    time.sleep(20)
+    lp.enter_otp_code(" ")
+    time.sleep(5)
+    lp.click_submit_button()
+    time.sleep(10)
 
 #הכנס לאתר נסה לעבור בין עמודים ללא ביצוע תהליך ההרשמה
 def test_login_process_4_1_1(driver):

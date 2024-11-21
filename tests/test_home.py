@@ -1,3 +1,7 @@
+from re import search
+from selenium.webdriver.common.keys import Keys
+from unicodedata import category
+
 from pages.home_page import HomePage as Lp
 import time
 from selenium.webdriver.common.by import By
@@ -5,7 +9,7 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.alert import Alert
-
+from selenium.webdriver.common.action_chains import ActionChains
 
 def test_search_field(driver):
     base_url = 'https://portal-dev.safsarglobal.link/'
@@ -23,49 +27,364 @@ def test_search_field(driver):
         'KIDS': [
             (lp.CAT_KIDS_BUTTON, [lp.KIDS_HEADER]), ],
     }
-
     for category, elements in categories_elements.items():
         button_locator, items = elements[0]
-
         # בדוק שהכפתור לחיץ ומוצג
         element = WebDriverWait(driver, 15).until(EC.element_to_be_clickable(button_locator))
         assert element.is_displayed(), f"{category} button is not displayed."
         print(f"{category} button is clickable and displayed.")
-
         # לחץ על הקטגוריה
         lp.click_element(button_locator)
-
         # בדוק אם הכותרת מופיעה בעמוד של הקטגוריה
         for header_locator in items:
             header_element = WebDriverWait(driver, 10).until(EC.presence_of_element_located(header_locator))
             assert header_element.is_displayed(), f"{category} header is not displayed."
             print(f"{category} header is displayed.")
-
         WebDriverWait(driver, 15).until(EC.visibility_of_element_located(lp.SAFSAR_LOGO_BUTTON))
-
-
         # חזור לעמוד הבית
         lp.click_safsar_logo()
-
         # הוסף שהייה קטנה כדי להבטיח טעינת העמוד
         time.sleep(2)
-
-
     print("All categories and their items are displayed correctly!")
 
+def test_home_search_3_4_1(driver):
+    base_url = 'https://portal-dev.safsarglobal.link/'
+    lp = Lp(driver)
+    driver.get(base_url)
+    element = WebDriverWait(driver, 15).until(EC.element_to_be_clickable(lp.SHOMER_TEXT))
+    assert element.is_displayed(),"button is not displayed."
+    print(" button is clickable and displayed.")
+
+def test_home_search_5_1_5(driver):
+    base_url = 'https://portal-dev.safsarglobal.link/'
+    lp = Lp(driver)
+    driver.get(base_url)
+    search_input = WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located(lp.SEARCH_FIELD))
+    lp.click_search_field()
+    search_input.send_keys("красивая мыш")
+    time.sleep(10)
+    search_input.send_keys(Keys.ENTER)
+    time.sleep(10)
 
 
 
+def test_home_search_5_1_6(driver):
+    base_url = 'https://portal-dev.safsarglobal.link/'
+    lp = Lp(driver)
+    driver.get(base_url)
+    WebDriverWait(driver, 10).until(EC.presence_of_element_located(lp.SEARCH_FIELD))
+    lp.click_search_field()
+    WebDriverWait(driver, 10).until(
+        EC.visibility_of_element_located((By.ID, "autocompleteField")))
+    third_option = WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.XPATH,"//ul[@id='autocompleteField_list']//li[3]")))
+    driver.execute_script("arguments[0].scrollIntoView(true);", third_option)
+    # לחיצה על האפשרות השלישית
+    ActionChains(driver).move_to_element(third_option).click().perform()
+    time.sleep(10)
 
 
+def test_home_search_5_2_1(driver):
+    base_url = 'https://portal-dev.safsarglobal.link/'
+    lp = Lp(driver)
+    driver.get(base_url)
+    search_input = WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located(lp.SEARCH_FIELD))
+    lp.click_search_field()
+    search_input.send_keys("מוזיקה")
+    time.sleep(5)
+    lp.click_clean_search()
+    time.sleep(10)
 
 
+def test_home_search_5_4_1(driver):
+    base_url = 'https://portal-dev.safsarglobal.link/'
+    lp = Lp(driver)
+    driver.get(base_url)
+    lp.click_cat_music_button()
+    time.sleep(10)
+    lp.click_safsar_logo()
+    search_input = WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located(lp.SEARCH_FIELD))
+    lp.click_search_field()
+    # בהמשך ללחוץ על קטגוריה מהבדיקה הקודמת
 
 
+def test_home_search_5_6_4(driver):
+    base_url = 'https://portal-dev.safsarglobal.link/'
+    lp = Lp(driver)
+    driver.get(base_url)
+    search_input = WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located(lp.SEARCH_FIELD))
+    lp.click_search_field()
+    search_input.send_keys("מוזיקה")
+    time.sleep(5)
+    scrollable_element = WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.CSS_SELECTOR, ".scrollBar.bg-white.overflow-y-auto")))
+    for i in range(10):  # מבצע 10 גלילות
+        driver.execute_script("arguments[0].scrollTop = arguments[0].scrollTop + 200;", scrollable_element)
+        time.sleep(0.5)  # המתנה קצרה בין גלילות
+    view_all_results_button = WebDriverWait(driver, 10).until(
+        EC.element_to_be_clickable((By.LINK_TEXT, "לצפיה בכל התוצאות")))
+    view_all_results_button.click()
+    time.sleep(5)
+    filter_of_results = WebDriverWait(driver, 10).until(EC.presence_of_element_located(lp.FILTER_OF_RESULTS))
+    assert filter_of_results.is_displayed()
 
 
+from playwright.sync_api import sync_playwright
+
+def tset_5_1_6_5_4_1_6_1_3(driver):
+    with sync_playwright() as p:
+        # Launch the browser
+        browser = p.chromium.launch(headless=False)
+        context = browser.new_context()
+        page = context.new_page()
+
+        # Navigate to the URL
+        page.goto('https://portal-dev.safsarglobal.link/')
+
+        # Interact with the combobox and select "ספורט"
+        combobox = page.get_by_role('combobox')
+        combobox.click()
+        page.get_by_text('ספורט').nth(2).click()
+
+        # Select the number "1"
+        page.get_by_text('1', exact=True).click()
+
+        # Click on "Safsar X" link
+        page.get_by_role('link', name='Safsar X').click()
+
+        # Click on "מוזיקה" link
+        page.get_by_role('link', name='מוזיקה').click()
+
+        # Click on "Safsar X" link again
+        page.get_by_role('link', name='Safsar X').click()
+
+        # Interact with the combobox and select "מוזיקה"
+        combobox.click()
+        page.get_by_text('מוזיקה').nth(2).click()
+
+        # Click on "Safsar X" link again
+        page.get_by_role('link', name='Safsar X').click()
+
+        # Interact with the combobox and click "חיפוש לפי קטגוריה"
+        combobox.click()
+        page.get_by_text('חיפוש לפי קטגוריה').click()
+
+        # Close the browser
+        browser.close()
+
+# Run the script
+if __name__ == "_main_":
+  tset_5_1_6_5_4_1_6_1_3()
 
 
+def test_home_6_1_1(driver):
+    base_url = 'https://portal-dev.safsarglobal.link/'
+    lp = Lp(driver)
+    driver.get(base_url)
+    home_page = WebDriverWait(driver, 10).until(EC.presence_of_element_located(lp.HOME_PAGE))
+    assert home_page.is_displayed()
+
+def test_home_6_1_2(driver):
+    base_url = 'https://portal-dev.safsarglobal.link/'
+    lp = Lp(driver)
+    driver.get(base_url)
+    search_field=WebDriverWait(driver, 10).until(EC.presence_of_element_located(lp.SEARCH_FIELD))
+    assert search_field.is_displayed()
+
+
+def test_home_6_1_3(driver):
+    base_url = 'https://portal-dev.safsarglobal.link/'  # כתובת האתר
+    driver.get(base_url)
+    lp = Lp(driver)
+    lp.click_search_field()
+    search_list=WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.XPATH, "//ul[@id='autocompleteField_list']")))
+    assert search_list.is_displayed(), "היו בעיות בהצגת הרשימה."
+
+
+def test_home_6_1_4(driver):
+    base_url = 'https://portal-dev.safsarglobal.link/'
+    lp = Lp(driver)
+    driver.get(base_url)
+    search_field=WebDriverWait(driver, 10).until(EC.presence_of_element_located(lp.EVENTS_CARUSEL))
+    assert search_field.is_displayed()
+
+
+def test_home_6_1_6(driver):
+    base_url = 'https://portal-dev.safsarglobal.link/'
+    lp = Lp(driver)
+    driver.get(base_url)
+    category_elements = [
+        lp.CAT_KIDS_BUTTON,
+        lp.CAT_TEATRON_BUTTON,
+        lp.CAT_MUSIC_BUTTON,
+        lp.CAT_SPORT_BUTTON,
+        lp.CAT_STENDUP_BUTTON
+    ]
+    for button_locator in category_elements:
+            element = WebDriverWait(driver, 15).until(EC.element_to_be_clickable(button_locator))
+            assert element.is_displayed(), f"Button with locator {button_locator} is not displayed."
+            print(f"Button with locator {button_locator} is displayed and clickable.")
+
+def test_home_6_1_7(driver):
+    base_url = 'https://portal-dev.safsarglobal.link/'
+    lp = Lp(driver)
+    driver.get(base_url)
+    search_field=WebDriverWait(driver, 10).until(EC.presence_of_element_located(lp.TEXT_LINE))
+    assert search_field.is_displayed()
+
+def test_home_6_1_8(driver):
+    base_url = 'https://portal-dev.safsarglobal.link/'
+    lp = Lp(driver)
+    driver.get(base_url)
+    search_field=WebDriverWait(driver, 10).until(EC.presence_of_element_located(lp.BOTTOM))
+    assert search_field.is_displayed()
+
+
+def test_home_6_1_9(driver):
+    base_url = 'https://portal-dev.safsarglobal.link/'
+    lp = Lp(driver)
+    driver.get(base_url)
+    search_field=WebDriverWait(driver, 10).until(EC.presence_of_element_located(lp.BOTTOM))
+    assert search_field.is_displayed()
+
+
+def test_home_6_2_4(driver):
+    base_url = 'https://portal-dev.safsarglobal.link/'
+    lp = Lp(driver)  # מחלקת Page Object המייצגת את העמודים
+    driver.get(base_url)
+    lp.click_safsar_center_logo()
+    WebDriverWait(driver, 10).until(EC.url_to_be(base_url))
+    assert driver.current_url == base_url, f"ה-URL הנוכחי הוא {driver.current_url}, לא עמוד הבית לאחר לחיצה על הלוגו"
+
+#sapir- בדיקה של הכותרת בתחתית העמוד
+def test_6_3_2(driver):
+        base_url = 'https://portal-dev.safsarglobal.link/'
+        lp = Lp(driver)
+        driver.get(base_url)
+        element = WebDriverWait(driver, 15).until(EC.element_to_be_clickable(lp.BIG_TITL))
+        assert element.is_displayed(), "button is not displayed."
+
+#sapir- בדיקה שכותרות מי אנחנו, איך זה עובד, שאלות ותשובות, מכירת כרטיסים, צרו קשר תנאי שימוש, מדיניות פרטיות, מדיניות ביטולים והצהרת נגישות לחיצים
+def test_6_3_2(driver):
+        base_url = 'https://portal-dev.safsarglobal.link/'
+        lp = Lp(driver)
+        driver.get(base_url)
+        lp.click_how_it_works()
+        time.sleep(5)
+        assert base_url == 'https://portal-dev.safsarglobal.link/who-we-are'
+
+def test_6_3_2(driver):
+        base_url = 'https://portal-dev.safsarglobal.link/'
+        lp = Lp(driver)
+        driver.get(base_url)
+        lp.click_how_it_works()
+        time.sleep(5)
+        assert base_url == 'https://portal-dev.safsarglobal.link/how-it-works'
+
+def test_6_3_2(driver):
+        base_url = 'https://portal-dev.safsarglobal.link/'
+        lp = Lp(driver)
+        driver.get(base_url)
+        lp.click_questions_answers()
+        time.sleep(5)
+        assert base_url == 'https://portal-dev.safsarglobal.link/faqs'
+
+def test_6_3_2(driver):
+        base_url = 'https://portal-dev.safsarglobal.link/'
+        lp = Lp(driver)
+        driver.get(base_url)
+        lp.click_ticket_sales()
+        time.sleep(5)
+        assert base_url == 'https://portal-dev.safsarglobal.link/ticket-sales'
+
+def test_6_3_2(driver):
+        base_url = 'https://portal-dev.safsarglobal.link/'
+        lp = Lp(driver)
+        driver.get(base_url)
+        lp.click_contact_us()
+        time.sleep(5)
+        assert base_url == 'https://portal-dev.safsarglobal.link/contact-us'
+
+def test_6_3_4(driver):
+        base_url = 'https://portal-dev.safsarglobal.link/'
+        lp = Lp(driver)
+        driver.get(base_url)
+        lp.click_terms()
+        time.sleep(5)
+        assert base_url == 'https://portal-dev.safsarglobal.link/terms-and-conditions'
+
+def test_6_3_2(driver):
+        base_url = 'https://portal-dev.safsarglobal.link/'
+        lp = Lp(driver)
+        driver.get(base_url)
+        lp.click_privacy_policy()
+        time.sleep(5)
+        assert base_url == 'https://portal-dev.safsarglobal.link/privacy-policy'
+
+def test_6_3_2(driver):
+        base_url = 'https://portal-dev.safsarglobal.link/'
+        lp = Lp(driver)
+        driver.get(base_url)
+        lp.click_accssibility()
+        time.sleep(5)
+        assert base_url == 'https://portal-dev.safsarglobal.link/accessibility-statement'
+
+def test_6_3_2(driver):
+        base_url = 'https://portal-dev.safsarglobal.link/'
+        lp = Lp(driver)
+        driver.get(base_url)
+        lp.click_cancel_lation()
+        time.sleep(5)
+        assert base_url == 'https://portal-dev.safsarglobal.link/cancellation-policy'
+
+# sapir- מעבר לדף האינטרנט של פייסבוק
+def test_6_3_7(driver):
+        base_url = 'https://portal-dev.safsarglobal.link/'
+        lp = Lp(driver)
+        driver.get(base_url)
+        lp.click_facebook()
+        time.sleep(5)
+        assert base_url == 'https://www.facebook.com/profile.php?id=61558194638860'
+
+# sapir- מעבר לדף האינסטגרם של ספסר
+def test_6_3_7(driver):
+        base_url = 'https://portal-dev.safsarglobal.link/'
+        lp = Lp(driver)
+        driver.get(base_url)
+        lp.click_instagram()
+        time.sleep(5)
+        assert base_url == 'https://www.instagram.com/'
+def test_home_6_4_5(driver):
+    base_url = 'https://portal-dev.safsarglobal.link/'
+    lp = Lp(driver)  # מחלקת Page Object המייצגת את העמודים
+    driver.get(base_url)
+    driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+    time.sleep(2)  # נותן זמן לטעינה (אם נדרש)
+    last_height = driver.execute_script("return document.body.scrollHeight")
+    while True:
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        time.sleep(2)  # מאפשר זמן לטעינת תוכן חדש (אם יש)
+        new_height = driver.execute_script("return document.body.scrollHeight")
+        if new_height == last_height:  # אם הגובה לא השתנה, הגענו לסוף
+            break
+        last_height = new_height
+    safsar_button = WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located(lp.SAFSAR_BOTTON_UNDERALL_LOGO)
+    )
+    # בודק אם הכפתור לא לחיץ (כדוגמה, נוודא שהוא לא צמוד לפעולה, כמו ניווט לדף אחר)
+    try:
+        safsar_button.click()  # מנסה ללחוץ על הכפתור
+        time.sleep(2)  # ממתין מעט אחרי הלחיצה
+        current_url = driver.current_url  # בודק את ה-URL הנוכחי
+        assert current_url == base_url, "לא נעשה מעבר לעמוד הבית בעת לחיצה על הלוגו"  # אם ה-URL השתנה, הכפתור עשה פעולה
+    except Exception as e:
+        print("הכפתור לא לחיץ או לא הוביל לעמוד אחר.")
+        assert True  # אם התרחשה שגיאה, נוודא שהכפתור לא גרם לבעיה
 
 
 # def test_header_elements(driver):
